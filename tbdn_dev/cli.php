@@ -77,14 +77,33 @@ if(isset($arParams['s']) && is_string($arParams['s'])) {
     myEcho("Изменено имя сревера");
 }
 
-//установлен параметр -k
+// установлен параметр -k
 if(isset($arParams['k'])) {
-    $ch = fopen($_SERVER['DOCUMENT_ROOT'].'/bitrix/license_key.php.dev', 'a+');
-    fclose($ch);
-	copy($_SERVER['DOCUMENT_ROOT'].'/bitrix/license_key.php', $_SERVER['DOCUMENT_ROOT'].'/bitrix/license_key.php.dev');
-    $f = fopen($_SERVER['DOCUMENT_ROOT'].'/bitrix/license_key.php', 'w+');
-    fwrite($f, '<? $LICENSE_KEY = ""; ?>');
-    fclose($f);
+
+    $empty_key = '<? $LICENSE_KEY = ""; ?>';
+    $empty_key_len = strlen($empty_key);
+    
+    $key_file = $_SERVER['DOCUMENT_ROOT'].'/bitrix/license_key.php';
+    $key_file_tmp = '.tmp.'.$key_file;
+    $key_file_bck = preg_replace('/\.php$/', '-'.date("YmdHis").'.bck.php', $key_file);
+
+    $written = file_put_contents($key_file_tmp, $empty_key);
+
+    if ( $written !== $empty_key_len ) {
+        myEcho("Не удалось записать файл с пустым ключом. Возможно закончилось место на диске или inodes.");
+        exit;
+    }
+
+    // disk space can be empty here too :]
+    if ( copy($key_file, $key_file_bck) === false ) {
+        myEcho("Не удалось сделать бэкап ключа.");
+        unlink($key_file_tmp);
+        exit;
+    }
+
+    // but not here
+    rename($key_file_tmp, $key_file);
+
     myEcho("Удален лицензионный ключ");
 }
 
