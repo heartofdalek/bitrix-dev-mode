@@ -4,23 +4,50 @@ define("NOT_CHECK_PERMISSIONS",true);
 define("NO_AGENT_CHECK", true);
 define("LANG", "s1");
 set_time_limit(0);
+
+function myEcho($text) {
+    echo $text.PHP_EOL;
+}
+
 myEcho("Начало работы скрипта\r\n");
-$_SERVER['DOCUMENT_ROOT'] = realpath(dirname(__FILE__) . '/../');
+
+$arParams = getopt("k::p::s::t::", ['docroot::']);
+
+$_DOC_ROOT = realpath(dirname(__FILE__) . '/../');
+
+/**
+* rewrite default $_DOC_ROOT if path via --docroot provided
+*/
+
+if ( isset($arParams['docroot']) ) {
+
+    $_DOC_ROOT = $arParams['docroot'];
+    
+    if ( empty($_DOC_ROOT) || !is_dir($_DOC_ROOT) ) {
+        myEcho("Директория $_DOC_ROOT не найдена");
+        exit;
+    }
+    
+    if ( !is_writable($_DOC_ROOT) ) {
+        myEcho("Директория $_DOC_ROOT не доступна для записи");
+        exit;
+    }
+
+}
+
+$_SERVER['DOCUMENT_ROOT'] = $_DOC_ROOT;
+
 $DOCUMENT_ROOT = $_SERVER["DOCUMENT_ROOT"];
+
 $prolog = $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php";
 $epilog = $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php";
 
-function myEcho($text) {
-    echo "$text\r\n";
-}
-
-
 if(!file_exists($prolog)) {
     myEcho("Необходимо запускать файл из корня проекта. Не найден пролог.");
-	die();
+    die();
 }
+
 require_once $prolog;
-$arParams = getopt("k::p::s::t::");
 
 //Режим разработки
 Bitrix\Main\Config\Option::set('main', 'update_devsrv', 'Y', false);
