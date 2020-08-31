@@ -77,12 +77,13 @@ if (isset($arParams['s']) && is_string($arParams['s'])) {
 }
 
 // установлен параметр -k
+// бэкап ключа
 if (isset($arParams['k'])) {
     $empty_key = '<? $LICENSE_KEY = ""; ?>';
     $empty_key_len = strlen($empty_key);
     
     $key_file = $_SERVER['DOCUMENT_ROOT'].'/bitrix/license_key.php';
-    $key_file_tmp = '.tmp.'.$key_file;
+    $key_file_tmp = $key_file.'.tmp';
     $key_file_bck = preg_replace('/\.php$/', '-'.date("YmdHis").'.bck.php', $key_file);
 
     $written = file_put_contents($key_file_tmp, $empty_key);
