@@ -17,17 +17,17 @@ $arParams = getopt("k::p::s::t::", ['docroot::']);
 $_DOC_ROOT = realpath(dirname(__FILE__) . '/../');
 
 /**
-* rewrite default $_DOC_ROOT if path via --docroot provided
-*/
+ * rewrite default $_DOC_ROOT if path via --docroot provided
+ */
 
 if (isset($arParams['docroot'])) {
     $_DOC_ROOT = $arParams['docroot'];
-    
+
     if (empty($_DOC_ROOT) || !is_dir($_DOC_ROOT)) {
         myEcho("Директория $_DOC_ROOT не найдена");
         exit;
     }
-    
+
     if (!is_writable($_DOC_ROOT)) {
         myEcho("Директория $_DOC_ROOT не доступна для записи");
         exit;
@@ -49,9 +49,9 @@ if (!file_exists($prolog)) {
 require_once $prolog;
 
 //Режим разработки
-Bitrix\Main\Config\Option::set('main', 'update_devsrv', 'Y', false);
+COption::SetOptionString("main", "update_devsrv", 'Y');
 //Отключить резервное копирование
-Bitrix\Main\Config\Option::set('main', 'dump_auto_enable_auto', 0, false);
+COption::SetOptionInt("main", "dump_auto_enable_auto", 0);
 
 //установлен параметр -t
 if (isset($arParams['t'])) {
@@ -66,13 +66,13 @@ if (isset($arParams['t'])) {
 
 //установлен параметр -p
 if (isset($arParams['p'])) {
-    Bitrix\Main\Config\Option::set('main', 'site_stopped', 'Y', false);
+    COption::SetOptionString('main', 'site_stopped', 'Y');
     myEcho("Закрыта публичная часть");
 }
 
 //Смена имени сервера
 if (isset($arParams['s']) && is_string($arParams['s'])) {
-    Bitrix\Main\Config\Option::set('main', 'server_name', $arParams['s']);
+    COption::SetOptionString('main', 'server_name', $arParams['s']);
     myEcho("Изменено имя сревера");
 }
 
@@ -81,7 +81,7 @@ if (isset($arParams['s']) && is_string($arParams['s'])) {
 if (isset($arParams['k'])) {
     $empty_key = '<? $LICENSE_KEY = ""; ?>';
     $empty_key_len = strlen($empty_key);
-    
+
     $key_file = $_SERVER['DOCUMENT_ROOT'].'/bitrix/license_key.php';
     $key_file_tmp = $key_file.'.tmp';
     $key_file_bck = preg_replace('/\.php$/', '-'.date("YmdHis").'.bck.php', $key_file);
@@ -116,7 +116,7 @@ copy(__DIR__ . '/custom_mail.php', $customMailFile);
 myEcho("Создан файл с функцией custom_mail ({$customMailFile}). Нужно его подключить.");
 
 //Автокеширование отключено
-Bitrix\Main\Config\Option::set('main', 'component_cache_on', 'N');
+COption::SetOptionString('main', 'component_cache_on', 'N');
 myEcho("Автокэширование отключено");
 //Очистка кеша
 BXClearCache(true);
@@ -166,25 +166,25 @@ if (CModule::IncludeModule('security')) {
 /*
  * Обновление списка сайтов
  */
- if (isset($arParams['s']) && is_string($arParams['s'])) {
-     $dbSite = CSite::GetList($by = "ID", $order="ASC");
-     $counter = 0;
-     while ($arSite = $dbSite->Fetch()) {
-         $counter++;
-         if ($arSite['DIR'] === '/') {
-             $arFields = array(
+if (isset($arParams['s']) && is_string($arParams['s'])) {
+    $dbSite = CSite::GetList($by = "ID", $order="ASC");
+    $counter = 0;
+    while ($arSite = $dbSite->Fetch()) {
+        $counter++;
+        if ($arSite['DIR'] === '/') {
+            $arFields = array(
                 "DOMAINS" => $arParams['s'],
                 "SERVER_NAME" => $arParams['s']
             );
-             (new CSite)->Update($arSite['ID'], $arFields);
-         }
-     }
-     if ($counter === 1) {
-         myEcho("Изменены настройки сайта для папки /.");
-     } else {
-         myEcho("Изменены настройки сайта для папки /. Необходимо проверить корректность настройки сайтов для других папок");
-     }
- }
+            (new CSite)->Update($arSite['ID'], $arFields);
+        }
+    }
+    if ($counter === 1) {
+        myEcho("Изменены настройки сайта для папки /.");
+    } else {
+        myEcho("Изменены настройки сайта для папки /. Необходимо проверить корректность настройки сайтов для других папок");
+    }
+}
 
 myEcho("Площадка настроена под разработку");
 //require $epilog;
